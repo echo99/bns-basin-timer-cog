@@ -80,4 +80,4 @@ class BasinTimer:
 
 
 def setup(bot):
-    bot.add_cog(CBTimer(bot))
+    bot.add_cog(BasinTimer(bot))
