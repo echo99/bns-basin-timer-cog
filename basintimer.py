@@ -13,7 +13,7 @@ class BasinTimer:
         self.baseTime = 1494469495
         self.spawnInterval = 2580
         self.alertTime = 300 # 5 minutes
-        self.bossOrder = ["thunder", "sand", "rain"]
+        self.bossOrder = ["thunder", "rain", "sand"]
         self.nextAnnouncementTime = self.baseTime;
         self.currentBossType = 0;
         self.nextBoss = self.bossOrder[0];
@@ -27,46 +27,58 @@ class BasinTimer:
         else:
             bossName = "Aomok (Thunder)"
         return bossName
-
+    
     @commands.command()
-    async def mycom(self):
-        """This does stuff!"""
+    async def setorder(self, option):
+        """
+        Set the spawn order of the bosses
+        1) Sand -> Rain -> Thunder
+        2) Thunder -> Rain -> Sand
+        """
 
-        #Your code will go here
-        await self.bot.say("I can do stuff!")
+        if option == 1:
+            self.bossOrder = ["sand", "rain", "thunder"]
+            await self.bot.say("Spawn order set to Sand -> Rain -> Thunder")
+        elif option == 2:
+            self.bossOrder = ["thunder", "rain", "sand"]
+            await self.bot.say("Spawn order set to Thunder -> Rain -> Sand")
+        else:
+            await self.bot.say(option + " is not a valid option!")
+        
     
     @commands.command()
     async def basinnext(self):
+        """Get the next boss announcement time"""
         currentTime = int(time.time())
         bossType = self.currentBossType
         nextAnnouncementTime = self.nextAnnouncementTime
+        #await self.bot.say(bossType)
         while nextAnnouncementTime < currentTime:
             nextAnnouncementTime += self.spawnInterval
             bossType += 1
         self.nextAnnouncementTime = nextAnnouncementTime
         self.currentBossType = bossType % 3
-        bossName = self.getbossname(bossType)
+        #await self.bot.say(bossType)
+        bossName = self.getbossname(self.bossOrder[bossType % 3])
         await self.bot.say("Next announcement at " + datetime.fromtimestamp(nextAnnouncementTime).strftime("%I:%M:%S %p PST") + "\n" + "Projected boss: " + bossName)
 
 
     @commands.command()
     async def startbasintimer(self):
+        """Start the Celestial Basin boss timer"""
         if self.trackerInit:
-            await self.bot.say("Basin tracker already started!")
+            await self.bot.say("Basin timer already started!")
         else:
             self.trackerInit = True;
-            await self.bot.say("Tracking basin times!")
+            await self.bot.say("Celestial basin timer started!")
             nextAnnouncementTime = self.baseTime
             bossType = 0
             while self.trackerInit:
                 currentTime = int(time.time())
-                #await self.bot.say("Current time: " + str(currentTime))
                 while (nextAnnouncementTime - self.alertTime) < currentTime:
                     nextAnnouncementTime += self.spawnInterval
                     bossType += 1
-                #await self.bot.say("Next announcement time: " + str(nextAnnouncementTime))
                 timeToAlert = nextAnnouncementTime - self.alertTime - currentTime
-                #await self.bot.say("Time to next alert: " + str(timeToAlert))
                 if timeToAlert > 1:
                     await asyncio.sleep(timeToAlert)
                     bossWeather = self.bossOrder[bossType % 3]
@@ -75,8 +87,9 @@ class BasinTimer:
     
     @commands.command()
     async def stopbasintimer(self):
+        """Stop the Celestial Basin boss timer"""
         self.trackerInit = False
-        await self.bot.say("Tracker stopped")
+        await self.bot.say("Timer stopped")
 
 
 def setup(bot):
